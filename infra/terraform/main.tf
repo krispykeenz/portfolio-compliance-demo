@@ -249,7 +249,7 @@ resource "aws_cloudfront_distribution" "main" {
     viewer_protocol_policy   = "https-only"
     allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods           = ["GET", "HEAD"]
-    cache_policy_id          = "413f2c0f-7f2d-4a26-9df2-25b9a1d1c6d3"
+    cache_policy_id          = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
     origin_request_policy_id = aws_cloudfront_origin_request_policy.grpc_web.id
     compress                 = false
   }

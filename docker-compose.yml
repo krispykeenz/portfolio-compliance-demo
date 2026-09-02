@@ -1,0 +1,27 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      ALLOWED_ORIGIN: http://localhost:5173
+      GRPC_ADDRESS: :9090
+      WEB_ADDRESS: :8080
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+  frontend:
+    build: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "5173:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
+      interval: 3s
+      timeout: 2s
+      retries: 10

@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package compliance.v1;
+
+option go_package = "portfolio-compliance-demo/backend/generated/compliance/v1;compliancev1";
+
+service ComplianceService {
+  rpc GetPortfolio(GetPortfolioRequest) returns (GetPortfolioResponse);
+  rpc CheckTrade(CheckTradeRequest) returns (CheckTradeResponse);
+}
+
+message GetPortfolioRequest { string portfolio_id = 1; }
+
+message Money {
+  int64 minor_units = 1;
+  string currency = 2;
+  string formatted = 3;
+}
+
+message Exposure {
+  int64 instrument_value_minor_units = 1;
+  int64 portfolio_nav_minor_units = 2;
+  string formatted_percent = 3;
+}
+
+message Instrument {
+  string id = 1;
+  string name = 2;
+}
+
+message Holding {
+  Instrument instrument = 1;
+  Money current_value = 2;
+  Exposure current_exposure = 3;
+}
+
+message Portfolio {
+  string id = 1;
+  string name = 2;
+  Money total_nav = 3;
+  repeated Holding holdings = 4;
+  string remainder_description = 5;
+}
+
+message GetPortfolioResponse { Portfolio portfolio = 1; }
+
+enum TradeSide {
+  TRADE_SIDE_UNSPECIFIED = 0;
+  TRADE_SIDE_BUY = 1;
+  TRADE_SIDE_SELL = 2;
+}
+
+message ProposedTrade {
+  string portfolio_id = 1;
+  string instrument_id = 2;
+  TradeSide side = 3;
+  Money amount = 4;
+}
+
+message CheckTradeRequest { ProposedTrade trade = 1; }
+
+enum ComplianceStatus {
+  COMPLIANCE_STATUS_UNSPECIFIED = 0;
+  COMPLIANCE_STATUS_PASS = 1;
+  COMPLIANCE_STATUS_FAIL = 2;
+}
+
+enum ReasonCode {
+  REASON_CODE_UNSPECIFIED = 0;
+  REASON_CODE_WITHIN_LIMIT = 1;
+  REASON_CODE_LIMIT_EXCEEDED = 2;
+}
+
+message RuleResult {
+  string rule_id = 1;
+  ComplianceStatus status = 2;
+  ReasonCode reason_code = 3;
+  Exposure current_exposure = 4;
+  Exposure projected_exposure = 5;
+  int32 limit_basis_points = 6;
+  string limit_formatted_percent = 7;
+  string explanation = 8;
+}
+
+message CheckTradeResponse { RuleResult result = 1; }

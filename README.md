@@ -35,13 +35,13 @@ scripts/                local smoke checks
 
 ## Data and compliance calculation
 
-The seeded portfolio has NAV `$1,000,000.00` and exactly three displayed holdings:
+The seeded portfolio has NAV `R1,000,000.00` and exactly three displayed holdings:
 
 | Holding | Value | Exposure |
 |---|---:|---:|
-| Alpha Global Equity Fund | $90,000.00 | 9.00% |
-| Beta Income Fund | $75,000.00 | 7.50% |
-| Gamma Property Fund | $50,000.00 | 5.00% |
+| Alpha Global Equity Fund | R90,000.00 | 9.00% |
+| Beta Income Fund | R75,000.00 | 7.50% |
+| Gamma Property Fund | R50,000.00 | 5.00% |
 
 The remainder is diversified assets. A buy is funded from that remainder, so NAV stays constant. Money is stored as integer cents and limits as basis points. Passing is decided without floating point:
 
@@ -53,9 +53,9 @@ The backend formats exposures and the complete explanation. The frontend does no
 
 Examples:
 
-- `$9,999.00`: Alpha projects below 10%; PASS.
-- `$10,000.00`: Alpha projects to exactly 10%; PASS.
-- `$10,001.00`: Alpha projects to 10.0001%; FAIL.
+- `R9,999.00`: Alpha projects below 10%; PASS.
+- `R10,000.00`: Alpha projects to exactly 10%; PASS.
+- `R10,001.00`: Alpha projects to 10.0001%; FAIL.
 
 ## Protobuf and gRPC
 
@@ -149,6 +149,16 @@ aws s3 sync ../../frontend/dist "s3://$(terraform output -raw frontend_bucket)" 
 aws cloudfront create-invalidation --distribution-id "$(terraform output -raw cloudfront_distribution_id)" --paths '/*'
 aws logs tail "/ecs/portfolio-compliance-demo-demo" --follow --region "$REGION"
 ```
+
+### GitHub deployment
+
+Pushes to `main` run `.github/workflows/deploy-aws.yml`. The workflow can also be started manually in GitHub Actions. Configure:
+
+- Repository secret `AWS_ROLE_ARN`: an AWS IAM role trusted by GitHub's OIDC provider and authorized to manage this demo's resources.
+- Repository secret `TF_STATE_BUCKET`: a pre-created, versioned S3 bucket for Terraform state. The role needs read/write/delete access to `portfolio-compliance-demo/terraform.tfstate` and its `.tflock` file.
+- Optional repository variable `AWS_REGION`; it defaults to `eu-west-1`.
+
+The workflow ensures ECR exists, pushes the backend image tagged with the commit SHA, applies the full infrastructure, uploads the frontend, and invalidates CloudFront. GitHub does not store long-lived AWS access keys.
 
 ### Cost and cleanup
 

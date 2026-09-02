@@ -16,7 +16,7 @@ export const grpcApi: Api = {
     return { name:p.getName(), nav:p.getTotalNav()?.getFormatted() ?? '', remainder:p.getRemainderDescription(), holdings:p.getHoldingsList().map(h => ({id:h.getInstrument()?.getId() ?? '', name:h.getInstrument()?.getName() ?? '', value:h.getCurrentValue()?.getFormatted() ?? '', exposure:h.getCurrentExposure()?.getFormattedPercent() ?? ''})) }
   },
   async checkTrade(amountMinor) {
-    const money = new Money(); money.setMinorUnits(amountMinor); money.setCurrency('USD')
+    const money = new Money(); money.setMinorUnits(amountMinor); money.setCurrency('ZAR')
     const trade = new ProposedTrade(); trade.setPortfolioId('portfolio-demo-001'); trade.setInstrumentId('alpha'); trade.setSide(TradeSide.TRADE_SIDE_BUY); trade.setAmount(money)
     const request = new CheckTradeRequest(); request.setTrade(trade)
     const result = (await client.checkTrade(request)).getResult()

@@ -1,0 +1,73 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-aws
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'eu-west-1' }}
+  TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.3
+
+      - name: Initialize Terraform
+        working-directory: infra/terraform
+        run: >-
+          terraform init
+          -backend-config="bucket=$TF_STATE_BUCKET"
+          -backend-config="key=portfolio-compliance-demo/terraform.tfstate"
+          -backend-config="region=$AWS_REGION"
+          -backend-config="use_lockfile=true"
+
+      - name: Validate Terraform
+        working-directory: infra/terraform
+        run: terraform fmt -check && terraform validate
+
+      - name: Ensure the image repository exists
+        working-directory: infra/terraform
+        run: terraform apply -auto-approve -target=aws_ecr_repository.backend -var="aws_region=$AWS_REGION"
+
+      - name: Build and push backend image
+        run: |
+          repository_url=$(terraform -chdir=infra/terraform output -raw ecr_repository_url)
+          aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "${repository_url%/*}"
+          docker build -t "$repository_url:$GITHUB_SHA" backend
+          docker push "$repository_url:$GITHUB_SHA"
+
+      - name: Apply infrastructure
+        working-directory: infra/terraform
+        run: terraform apply -auto-approve -var="aws_region=$AWS_REGION" -var="container_image_tag=$GITHUB_SHA"
+
+      - name: Build and upload frontend
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          bucket=$(terraform -chdir=infra/terraform output -raw frontend_bucket)
+          aws s3 sync frontend/dist "s3://$bucket" --delete
+
+      - name: Invalidate CloudFront cache
+        run: |
+          distribution_id=$(terraform -chdir=infra/terraform output -raw cloudfront_distribution_id)
+          aws cloudfront create-invalidation --distribution-id "$distribution_id" --paths '/*'

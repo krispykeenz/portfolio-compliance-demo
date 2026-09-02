@@ -38,6 +38,9 @@ func TestServiceIntegration(t *testing.T) {
 	if got := len(portfolio.GetPortfolio().GetHoldings()); got != 3 {
 		t.Fatalf("got %d holdings", got)
 	}
+	if got := portfolio.GetPortfolio().GetTotalNav().GetCurrency(); got != "ZAR" {
+		t.Fatalf("got currency %q", got)
+	}
 
 	response, err := client.CheckTrade(context.Background(), &compliancev1.CheckTradeRequest{Trade: &compliancev1.ProposedTrade{PortfolioId: "portfolio-demo-001", InstrumentId: "alpha", Side: compliancev1.TradeSide_TRADE_SIDE_BUY, Amount: &compliancev1.Money{MinorUnits: 1_000_000}}})
 	if err != nil {

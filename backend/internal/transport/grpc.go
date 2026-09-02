@@ -74,7 +74,7 @@ func portfolioToProto(p domain.Portfolio) *compliancev1.Portfolio {
 }
 
 func money(minor int64) *compliancev1.Money {
-	return &compliancev1.Money{MinorUnits: minor, Currency: "USD", Formatted: fmt.Sprintf("%d.%02d", minor/100, minor%100)}
+	return &compliancev1.Money{MinorUnits: minor, Currency: "ZAR", Formatted: fmt.Sprintf("%d.%02d", minor/100, minor%100)}
 }
 func exposure(value, nav int64) *compliancev1.Exposure {
 	return &compliancev1.Exposure{InstrumentValueMinorUnits: value, PortfolioNavMinorUnits: nav, FormattedPercent: compliance.FormatPercent(value, nav)}

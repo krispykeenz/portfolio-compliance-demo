@@ -36,16 +36,13 @@ func Check(portfolio domain.Portfolio, trade domain.Trade, limitBasisPoints int3
 	left := new(big.Int).Mul(big.NewInt(projected), big.NewInt(10_000))
 	right := new(big.Int).Mul(big.NewInt(portfolio.NAVMinor), big.NewInt(int64(limitBasisPoints)))
 	passed := left.Cmp(right) <= 0
-	reason, prefix, final := "WITHIN_LIMIT", "PASS", "The maximum permitted exposure is"
+	reason, prefix, relation := "WITHIN_LIMIT", "PASS", "within"
 	if !passed {
-		reason, prefix, final = "LIMIT_EXCEEDED", "FAIL", "This exceeds the"
+		reason, prefix, relation = "LIMIT_EXCEEDED", "FAIL", "over"
 	}
 	currentPercent, projectedPercent := FormatPercent(holding.ValueMinor, portfolio.NAVMinor), FormatPercent(projected, portfolio.NAVMinor)
 	limitPercent := formatBasisPoints(limitBasisPoints)
-	explanation := fmt.Sprintf("%s: %s would move from %s to %s.\n%s %s limit.", prefix, holding.Instrument.Name, currentPercent, projectedPercent, final, limitPercent)
-	if passed {
-		explanation = fmt.Sprintf("%s: %s would move from %s to %s.\nThe maximum permitted exposure is %s.", prefix, holding.Instrument.Name, currentPercent, projectedPercent, limitPercent)
-	}
+	explanation := fmt.Sprintf("%s: %s would make up %s of your total investments, compared with %s now. This is %s the %s limit.", prefix, holding.Instrument.Name, projectedPercent, currentPercent, relation, limitPercent)
 	return domain.Result{Passed: passed, ReasonCode: reason, CurrentValueMinor: holding.ValueMinor, ProjectedValueMinor: projected, NAVMinor: portfolio.NAVMinor, LimitBasisPoints: limitBasisPoints, InstrumentName: holding.Instrument.Name, Explanation: explanation}, nil
 }
 

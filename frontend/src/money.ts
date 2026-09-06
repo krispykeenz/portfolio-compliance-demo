@@ -1,4 +1,6 @@
 const message = 'Enter a positive amount with at most two decimal places.'
+const numberFormat = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+export const formatMoney = (value: string): string => `R${numberFormat.format(Number(value))}`
 
 export function parseMoney(input: string): number {
   const normalized = input.replaceAll(',', '').trim()

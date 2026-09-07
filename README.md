@@ -181,7 +181,3 @@ The primary recurring costs are the ALB hourly charge/capacity units, Fargate CP
 - The origin header is not user authentication. Add identity, authorization, TLS to the origin, WAF/rate limiting, secrets management, and private networking.
 - Add observability metrics/traces, deployment alarms, backups, image signing/scanning gates, and contract-breaking checks in CI.
 - Exposure formatting truncates beyond six decimal places for display; the pass/fail comparison remains exact.
-
-## Interview talking points
-
-Be ready to explain why the compliance function is transport-free, why cross multiplication avoids floating point, how `bufconn` tests the real RPC boundary cheaply, how gRPC-Web differs from native gRPC, why generated files are committed, how Protobuf evolves safely, and which security/cost compromises are explicitly demo-only.
